@@ -1,0 +1,43 @@
+name: Java Verification CI
+
+# Automatically runs to check student code based on branch activity
+on:
+  push:
+    # Triggers when a student pushes directly to a dev branch 
+    # OR pushes to their own feature branches (e.g., feature/login, student-name/dashboard)
+    branches:    
+      - development
+      - '*'      # Matches any single-level branch name (e.g., 'rick-auth')
+      - '**'     # Matches nested branch names containing slashes (e.g., 'feature/login')
+  
+  pull_request:
+    # Triggers whenever a student opens a pull request targeting your staging branch
+    branches: 
+      - development
+
+jobs:
+  compile-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 26
+      uses: actions/setup-java@v4
+      with:
+        java-version: '26'
+        distribution: 'oracle'
+        cache: 'maven'
+
+    - name: Compile and Package App
+      run: mvn clean package -DskipTests --batch-mode
+
+    - name: Verify Executable Output
+      run: |
+        if [ -f target/ShaTuW-1.0-SNAPSHOT.jar ]; then
+          echo "Success: Executable build verified. Ready for deployment testing."
+        else
+          echo "Error: Output JAR file not found. Check pom.xml artifactId configurations."
+          exit 1
+        fi
